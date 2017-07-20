@@ -16,14 +16,19 @@ class Gesture {
 		case touchEnded
 		case touchCancelled
 	}
-	
+    
 	var currentTouches = Set<UITouch>()
 	let sceneView: ARSCNView
 	let virtualObject: VirtualObject
 	
 	var refreshTimer: Timer?
-	
-	init(_ touches: Set<UITouch>, _ sceneView: ARSCNView, _ virtualObject: VirtualObject) {
+	var didFinish: ((Gesture) -> Void)?
+    
+    init(_ touches: Set<UITouch>,
+         _ sceneView: ARSCNView,
+         _ virtualObject: VirtualObject,
+         _ didFinish: ((Gesture) -> Void)?) {
+        self.didFinish = didFinish
 		currentTouches = touches
 		self.sceneView = sceneView
 		self.virtualObject = virtualObject
@@ -35,11 +40,14 @@ class Gesture {
 		})
 	}
 	
-	static func startGestureFromTouches(_ touches: Set<UITouch>, _ sceneView: ARSCNView, _ virtualObject: VirtualObject) -> Gesture? {
-		if touches.count == 1 {
-			return SingleFingerGesture(touches, sceneView, virtualObject)
+	static func startGestureFromTouches(_ touches: Set<UITouch>,
+                                        _ sceneView: ARSCNView,
+                                        _ virtualObject: VirtualObject,
+                                        _ didFinish: ((Gesture) -> Void)?) -> Gesture? {
+        if touches.count == 1 {
+			return SingleFingerGesture(touches, sceneView, virtualObject, didFinish)
 		} else if touches.count == 2 {
-			return TwoFingerGesture(touches, sceneView, virtualObject)
+			return TwoFingerGesture(touches, sceneView, virtualObject, didFinish)
 		} else {
 			return nil
 		}
@@ -77,7 +85,8 @@ class Gesture {
 				singleFingerGesture.finishGesture()
 				singleFingerGesture.refreshTimer?.invalidate()
 				singleFingerGesture.refreshTimer = nil
-				return Gesture.startGestureFromTouches(currentTouches, sceneView, virtualObject)
+                didFinish?(self)
+				return Gesture.startGestureFromTouches(currentTouches, sceneView, virtualObject, didFinish)
 			}
 		} else if let twoFingerGesture = self as? TwoFingerGesture {
 			
@@ -92,6 +101,7 @@ class Gesture {
 				twoFingerGesture.finishGesture()
 				twoFingerGesture.refreshTimer?.invalidate()
 				twoFingerGesture.refreshTimer = nil
+                didFinish?(self)
 				return nil
 			}
 		} else {
@@ -111,8 +121,11 @@ class SingleFingerGesture: Gesture {
 	var firstTouchWasOnObject = false
 	var dragOffset = CGPoint()
 	
-	override init(_ touches: Set<UITouch>, _ sceneView: ARSCNView, _ virtualObject: VirtualObject) {
-		super.init(touches, sceneView, virtualObject)
+	override init(_ touches: Set<UITouch>,
+                  _ sceneView: ARSCNView,
+                  _ virtualObject: VirtualObject,
+                  _ didFinish: ((Gesture) -> Void)?) {
+		super.init(touches, sceneView, virtualObject, didFinish)
 		
 		let touch = currentTouches[currentTouches.index(currentTouches.startIndex, offsetBy: 0)]
 		initialTouchLocation = touch.location(in: sceneView)
@@ -267,13 +280,17 @@ class TwoFingerGesture: Gesture {
 	let scaleThreshold: CGFloat = 50
 	let scaleThresholdHarder: CGFloat = 90
 	var scaleThresholdPassed = false
-	var allowScaling = false
+	var allowScaling = true
 	var initialDistanceBetweenFingers: CGFloat = 0
 	var baseDistanceBetweenFingers: CGFloat = 0
 	var objectBaseScale: CGFloat = 1.0
+    var hasScaledObject = false
 
-	override init(_ touches: Set<UITouch>, _ sceneView: ARSCNView, _ virtualObject: VirtualObject) {
-		super.init(touches, sceneView, virtualObject)
+	override init(_ touches: Set<UITouch>,
+                  _ sceneView: ARSCNView,
+                  _ virtualObject: VirtualObject,
+                  _ didFinish: ((Gesture) -> Void)?) {
+		super.init(touches, sceneView, virtualObject, didFinish)
 		
 		firstTouch = currentTouches[currentTouches.index(currentTouches.startIndex, offsetBy: 0)]
 		secondTouch = currentTouches[currentTouches.index(currentTouches.startIndex, offsetBy: 1)]
@@ -471,7 +488,7 @@ class TwoFingerGesture: Gesture {
                  }*/
 
                 virtualObject.scale = SCNVector3Uniform(newScale)
-
+                hasScaledObject = true
                 if let nodeWhichReactsToScale = virtualObject.reactsToScale() {
                     nodeWhichReactsToScale.reactToScale()
                 }
@@ -481,5 +498,5 @@ class TwoFingerGesture: Gesture {
 	
 	func finishGesture() {
 		// Nothing to do here for two finger gestures.
-	}
+    }
 }

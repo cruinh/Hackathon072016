@@ -355,7 +355,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		}
 		
 		if currentGesture == nil {
-			currentGesture = Gesture.startGestureFromTouches(touches, self.sceneView, object)
+            currentGesture = Gesture.startGestureFromTouches(touches, self.sceneView, object) { gesture -> Void in
+                guard let g = gesture as? TwoFingerGesture, g.hasScaledObject else { return }
+                
+                self._printMeasurements()
+            }
 		} else {
 			currentGesture = currentGesture!.updateGestureFromTouches(touches, .touchBegan)
 		}
@@ -378,6 +382,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		}
 		
 		currentGesture = currentGesture?.updateGestureFromTouches(touches, .touchEnded)
+        
+        if let gesture = currentGesture as? TwoFingerGesture, gesture.hasScaledObject {
+            debugPrint("scaled object")
+            _printMeasurements()
+        }
 	}
 	
 	override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
