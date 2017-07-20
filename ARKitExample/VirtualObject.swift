@@ -24,12 +24,15 @@ class VirtualObject: SCNNode {
 		self.name = "Virtual object root node"
 	}
     
-    init(geometry: SCNGeometry, thumbImageFilename: String, title: String) {
+    init(childNodes: [SCNNode], thumbImageFilename: String, title: String) {
         super.init()
-        self.geometry = geometry
         self.name = "Virtual object root node"
         self.thumbImage = UIImage(named: thumbImageFilename)
         self.title = title
+        
+        childNodes.forEach { (child) in
+            self.addChildNode(child)
+        }
     }
 	
 	init(modelName: String, fileExtension: String, thumbImageFilename: String, title: String) {

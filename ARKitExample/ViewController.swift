@@ -48,29 +48,22 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
         }
     }
     
-    
     @IBAction func heightControlChanged(_ sender: UISegmentedControl) {
         guard let virtualObject = virtualObject else { return }
         
-        if let box = virtualObject.geometry as? SCNBox {
+        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
             
             let controlValue = value(fromSegmentedControl:sender)
             
             box.height = box.height + CGFloat(controlValue)
             
-            let newBoxPosition = Float(box.height) / 2.0
-            
-            virtualObject.position = SCNVector3(virtualObject.position.x, newBoxPosition, virtualObject.position.z)
-            
             _printMeasurements()
+            
         } else {
             let x = virtualObject.scale.x
             let y = virtualObject.scale.y + value(fromSegmentedControl:sender)
             let z = virtualObject.scale.z
             _setObjectScale(x,y,z)
-            
-//            let newBoxPosition = y / 2.0
-//            virtualObject.position = SCNVector3(virtualObject.position.x, newBoxPosition, virtualObject.position.z)
         }
         
     }
@@ -78,18 +71,39 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
     @IBAction func widthControlChanged(_ sender: UISegmentedControl) {
         guard let virtualObject = virtualObject else { return }
         
-        let x = virtualObject.scale.x + value(fromSegmentedControl:sender)
-        let y = virtualObject.scale.y
-        let z = virtualObject.scale.z
-        _setObjectScale(x,y,z)
+        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
+            
+            let controlValue = value(fromSegmentedControl:sender)
+            
+            box.width = box.width + CGFloat(controlValue)
+            
+            _printMeasurements()
+            
+        } else {
+            let x = virtualObject.scale.x + value(fromSegmentedControl:sender)
+            let y = virtualObject.scale.y
+            let z = virtualObject.scale.z
+            _setObjectScale(x,y,z)
+        }
     }
+    
     @IBAction func depthControlChanged(_ sender: UISegmentedControl) {
         guard let virtualObject = virtualObject else { return }
         
-        let x = virtualObject.scale.x
-        let y = virtualObject.scale.y
-        let z = virtualObject.scale.z + value(fromSegmentedControl:sender)
-        _setObjectScale(x,y,z)
+        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
+            
+            let controlValue = value(fromSegmentedControl:sender)
+            
+            box.length = box.length + CGFloat(controlValue)
+            
+            _printMeasurements()
+            
+        } else {
+            let x = virtualObject.scale.x
+            let y = virtualObject.scale.y
+            let z = virtualObject.scale.z + value(fromSegmentedControl:sender)
+            _setObjectScale(x,y,z)
+        }
     }
     
     @objc func startRecording() {
@@ -117,12 +131,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
     }
     
     func _printMeasurements() {
-        guard let virtualObject = virtualObject else { return }
+        guard let virtualObject = virtualObject as? MeasurementCube,
+            let box = virtualObject.childNodes.first?.geometry as? SCNBox else { return }
         
         let inchesPerMeter : Float = 39.37
-        let width : Float = 1
-        let height : Float = 1
-        let length : Float = 1
+        let width : Float = Float(box.width)
+        let height : Float = Float(box.height)
+        let length : Float = Float(box.length)
         
         let xInches = virtualObject.scale.x * width * inchesPerMeter
         let yInches = virtualObject.scale.y * height * inchesPerMeter
@@ -159,6 +174,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 			session.run(sessionConfig)
 		}
 	}
+    
 	var use3DOFTrackingFallback = false
     @IBOutlet var sceneView: ARSCNView!
 	var screenCenter: CGPoint?
