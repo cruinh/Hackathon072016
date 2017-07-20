@@ -51,11 +51,18 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
     @IBAction func heightControlChanged(_ sender: UISegmentedControl) {
         guard let virtualObject = virtualObject else { return }
         
-        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
+        if let boxNode = virtualObject.childNodes.first, let box = boxNode.geometry as? SCNBox {
             
             let controlValue = value(fromSegmentedControl:sender)
             
             box.height = box.height + CGFloat(controlValue)
+            
+            
+            
+            let x = boxNode.position.x
+            let y = Float(box.height / 2)
+            let z = boxNode.position.z
+            boxNode.position = SCNVector3(x,y,z)
             
             _printMeasurements()
             
