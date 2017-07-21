@@ -50,6 +50,14 @@ class MeasurementCube: VirtualObject {
 class MeasurementCube2: VirtualObject {
     private let oneFoot = CGFloat(0.3048)
     
+    private var _initialSize : SCNVector3?
+    private lazy var initialSize : SCNVector3 = {
+        guard _initialSize == nil else { return _initialSize! }
+        _initialSize = SCNVector3(oneFoot/10, oneFoot/10, 0)
+        _initialSize = SCNVector3(1, 1, 1)
+        return _initialSize!
+    }()
+    
     var topNode : SCNNode?
     var frontNode : SCNNode?
     var backNode : SCNNode?
@@ -67,7 +75,7 @@ class MeasurementCube2: VirtualObject {
     var rightPlane : SCNPlane? { return rightNode?.geometry as? SCNPlane }
     var leftPlane : SCNPlane? { return leftNode?.geometry as? SCNPlane }
     
-    let unselectedColor = UIColor(displayP3Red: 7, green: 137, blue: 243, alpha: 1.0)
+    let unselectedColor = UIColor(displayP3Red: 7/255, green: 137/255, blue: 243/255, alpha: 0.5)
     let selectedColor = UIColor.yellow
     
     var selectedNode : SCNNode?
@@ -113,6 +121,23 @@ class MeasurementCube2: VirtualObject {
         return nil
     }
     
+    override func scale2(_ amount: CGFloat) {
+        guard let selectedNode = selectedNode else {
+            super.scale2(amount)
+            return
+            
+        }
+        
+        if selectedNode == topNode {
+            self.scale = SCNVector3Make(0, Float(amount), 0)
+        } else if selectedNode == frontNode || selectedNode == backNode {
+            self.scale = SCNVector3Make(0, 0, Float(amount))
+        } else if selectedNode == rightNode || selectedNode == leftNode {
+            self.scale = SCNVector3Make(Float(amount), 0, 0)
+        }
+        
+    }
+    
     override func loadModel() {
         super.loadModel()
         
@@ -138,7 +163,7 @@ class MeasurementCube2: VirtualObject {
             {
                 node.removeFromParentNode()
                 
-                let frontGeometry = SCNPlane(width: 1, height: 1)
+                let frontGeometry = SCNPlane(width: CGFloat(initialSize.x), height: CGFloat(initialSize.y))
                 let frontMaterial = sceneFileMaterial.copy() as! SCNMaterial
                 frontMaterial.diffuse.contents = frontColor
                 frontGeometry.materials = [frontMaterial]
@@ -147,7 +172,7 @@ class MeasurementCube2: VirtualObject {
                 frontNode!.position = SCNVector3(0.0, 0.5, 0.5)
                 wrapperNode.addChildNode(frontNode!)
                 
-                let backGeometry = SCNPlane(width: 1, height: 1)
+                let backGeometry = SCNPlane(width: CGFloat(initialSize.x), height: CGFloat(initialSize.y))
                 let backMaterial = sceneFileMaterial.copy() as! SCNMaterial
                 backMaterial.diffuse.contents = backColor
                 backGeometry.materials = [backMaterial]
@@ -157,7 +182,7 @@ class MeasurementCube2: VirtualObject {
                 backNode!.position = SCNVector3(0.0, 0.5, -0.5)
                 wrapperNode.addChildNode(backNode!)
                 
-                let rightGeometry = SCNPlane(width: 1, height: 1)
+                let rightGeometry = SCNPlane(width: CGFloat(initialSize.z), height: CGFloat(initialSize.y))
                 let rightMaterial = sceneFileMaterial.copy() as! SCNMaterial
                 rightMaterial.diffuse.contents = rightColor
                 rightGeometry.materials = [rightMaterial]
@@ -167,7 +192,7 @@ class MeasurementCube2: VirtualObject {
                 rightNode!.position = SCNVector3(0.5, 0.5, 0.0)
                 wrapperNode.addChildNode(rightNode!)
                 
-                let leftGeometry = SCNPlane(width: 1, height: 1)
+                let leftGeometry = SCNPlane(width: CGFloat(initialSize.z), height: CGFloat(initialSize.y))
                 let leftMaterial = sceneFileMaterial.copy() as! SCNMaterial
                 leftMaterial.diffuse.contents = leftColor
                 leftGeometry.materials = [leftMaterial]
@@ -177,7 +202,7 @@ class MeasurementCube2: VirtualObject {
                 leftNode!.position = SCNVector3(-0.5, 0.5, 0.0)
                 wrapperNode.addChildNode(leftNode!)
                 
-                let topGeometry = SCNPlane(width: 1, height: 1)
+                let topGeometry = SCNPlane(width: CGFloat(initialSize.x), height: CGFloat(initialSize.z))
                 let topMaterial = sceneFileMaterial.copy() as! SCNMaterial
                 topMaterial.diffuse.contents = topColor
                 topGeometry.materials = [topMaterial]

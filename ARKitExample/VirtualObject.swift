@@ -83,6 +83,10 @@ class VirtualObject: SCNNode {
 
 		controller.moveVirtualObjectToPosition(result.position, instantly, !result.hitAPlane)
 	}
+    
+    func scale2(_ amount: CGFloat) {
+        scale = SCNVector3Uniform(amount)
+    }
 }
 
 extension VirtualObject {

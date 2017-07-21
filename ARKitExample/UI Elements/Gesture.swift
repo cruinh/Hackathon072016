@@ -487,7 +487,8 @@ class TwoFingerGesture: Gesture {
                  newScale = 1.0 // Snap scale to 100% when getting close.
                  }*/
 
-                virtualObject.scale = SCNVector3Uniform(newScale)
+                virtualObject.scale2(newScale)
+                
                 hasScaledObject = true
                 if let nodeWhichReactsToScale = virtualObject.reactsToScale() {
                     nodeWhichReactsToScale.reactToScale()
