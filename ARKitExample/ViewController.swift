@@ -355,10 +355,25 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		}
 		
 		if currentGesture == nil {
-            currentGesture = Gesture.startGestureFromTouches(touches, self.sceneView, object) { gesture -> Void in
-                guard let g = gesture as? TwoFingerGesture, g.hasScaledObject else { return }
+            currentGesture = Gesture.startGestureFromTouches(touches, self.sceneView, object) { [weak self] gesture -> Void in
                 
-                self._printMeasurements()
+                if let g = gesture as? SingleFingerGesture,
+                    let cube2 = self?.virtualObject as? MeasurementCube2,
+                    let sceneView = self?.sceneView {
+                    
+                    let touch = g.initialTouchLocation
+                    
+                    var hitTestOptions = [SCNHitTestOption: Any]()
+                    hitTestOptions[SCNHitTestOption.backFaceCulling] = true
+                    let results: [SCNHitTestResult] = sceneView.hitTest(touch, options: hitTestOptions)
+                    if let planeNode = cube2.hitTestFoundPlaneNode(results:results) {
+                        cube2.select(planeNode:planeNode)
+                    }
+                    
+                } else if let g = gesture as? TwoFingerGesture, g.hasScaledObject {
+                    self?._printMeasurements()
+                }
+                
             }
 		} else {
 			currentGesture = currentGesture!.updateGestureFromTouches(touches, .touchBegan)

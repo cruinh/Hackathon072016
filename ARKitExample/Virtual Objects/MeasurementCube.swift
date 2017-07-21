@@ -56,6 +56,11 @@ class MeasurementCube2: VirtualObject {
     var rightNode : SCNNode?
     var leftNode : SCNNode?
     
+    var allPlanes : [SCNNode] {
+        let all : [SCNNode?] = [topNode,frontNode,backNode,rightNode,leftNode]
+        return all.flatMap({$0})
+    }
+    
     var topPlane : SCNPlane? { return topNode?.geometry as? SCNPlane }
     var frontPlane : SCNPlane? { return frontNode?.geometry as? SCNPlane }
     var backPlane : SCNPlane? { return backNode?.geometry as? SCNPlane }
@@ -67,10 +72,37 @@ class MeasurementCube2: VirtualObject {
     
     var selectedNode : SCNNode?
     
-    private let distinctColors = true
+    private let distinctColors = false
     
     override init() {
         super.init(modelName: "measurementCube", fileExtension: "scn", thumbImageFilename: "measurementCube", title: "Measurement2")
+    }
+    
+    func select(planeNode: SCNNode) {
+        guard allPlanes.contains(planeNode),
+            let geometry = planeNode.geometry,
+            let material = geometry.materials.first else { return }
+        
+        if selectedNode == planeNode {
+            material.diffuse.contents = unselectedColor
+            selectedNode = nil
+        } else {
+            selectedNode?.geometry?.materials.first?.diffuse.contents = unselectedColor
+            
+            material.diffuse.contents = selectedColor
+            selectedNode = planeNode
+        }
+    }
+    
+    func hitTestFoundPlaneNode(results: [SCNHitTestResult]) -> SCNNode? {
+        for result in results {
+            for plane in allPlanes {
+                if plane.name == result.node.name {
+                    return plane
+                }
+            }
+        }
+        return nil
     }
     
     override func loadModel() {
@@ -103,6 +135,7 @@ class MeasurementCube2: VirtualObject {
                 frontMaterial.diffuse.contents = frontColor
                 frontGeometry.materials = [frontMaterial]
                 frontNode = SCNNode(geometry: frontGeometry)
+                frontNode!.name = "frontNode"
                 frontNode!.position = SCNVector3(0.0, 0.5, 0.5)
                 wrapperNode.addChildNode(frontNode!)
                 
@@ -111,6 +144,7 @@ class MeasurementCube2: VirtualObject {
                 backMaterial.diffuse.contents = backColor
                 backGeometry.materials = [backMaterial]
                 backNode = SCNNode(geometry: backGeometry)
+                backNode!.name = "backNode"
                 backNode!.rotation = SCNVector4(0, 1, 0, -Float.pi)
                 backNode!.position = SCNVector3(0.0, 0.5, -0.5)
                 wrapperNode.addChildNode(backNode!)
@@ -120,6 +154,7 @@ class MeasurementCube2: VirtualObject {
                 rightMaterial.diffuse.contents = rightColor
                 rightGeometry.materials = [rightMaterial]
                 rightNode = SCNNode(geometry: rightGeometry)
+                rightNode!.name = "rightNode"
                 rightNode!.rotation = SCNVector4(0, 1, 0, Float.pi/2)
                 rightNode!.position = SCNVector3(0.5, 0.5, 0.0)
                 wrapperNode.addChildNode(rightNode!)
@@ -129,6 +164,7 @@ class MeasurementCube2: VirtualObject {
                 leftMaterial.diffuse.contents = leftColor
                 leftGeometry.materials = [leftMaterial]
                 leftNode = SCNNode(geometry: leftGeometry)
+                leftNode!.name = "leftNode"
                 leftNode!.rotation = SCNVector4(0, 1, 0, -Float.pi/2)
                 leftNode!.position = SCNVector3(-0.5, 0.5, 0.0)
                 wrapperNode.addChildNode(leftNode!)
@@ -138,6 +174,7 @@ class MeasurementCube2: VirtualObject {
                 topMaterial.diffuse.contents = topColor
                 topGeometry.materials = [topMaterial]
                 topNode = SCNNode(geometry: topGeometry)
+                topNode!.name = "topNode"
                 topNode!.rotation = SCNVector4(1, 0, 0, -Float.pi/2)
                 topNode!.position = SCNVector3(0, 1.0, 0.0)
                 wrapperNode.addChildNode(topNode!)
