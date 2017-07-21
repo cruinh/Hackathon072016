@@ -78,19 +78,27 @@ class MeasurementCube2: VirtualObject {
         super.init(modelName: "measurementCube", fileExtension: "scn", thumbImageFilename: "measurementCube", title: "Measurement2")
     }
     
-    func select(planeNode: SCNNode) {
-        guard allPlanes.contains(planeNode),
-            let geometry = planeNode.geometry,
-            let material = geometry.materials.first else { return }
+    func select(planeNode: SCNNode?) {
+        guard let planeNode = planeNode else { return }
+        guard allPlanes.contains(planeNode) else { return }
         
         if selectedNode == planeNode {
-            material.diffuse.contents = unselectedColor
-            selectedNode = nil
+            _unselect(planeNode)
         } else {
-            selectedNode?.geometry?.materials.first?.diffuse.contents = unselectedColor
-            
-            material.diffuse.contents = selectedColor
-            selectedNode = planeNode
+            _unselect(selectedNode)
+            _select(planeNode)
+        }
+    }
+    
+    private func _select(_ node: SCNNode?) {
+        node?.geometry?.materials.first?.diffuse.contents = selectedColor
+        selectedNode = node
+    }
+    
+    private func _unselect(_ node: SCNNode?) {
+        node?.geometry?.materials.first?.diffuse.contents = unselectedColor
+        if node == selectedNode {
+            selectedNode = nil
         }
     }
     

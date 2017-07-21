@@ -359,7 +359,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
                 
                 if let g = gesture as? SingleFingerGesture,
                     let cube2 = self?.virtualObject as? MeasurementCube2,
-                    let sceneView = self?.sceneView {
+                    let sceneView = self?.sceneView,
+                    g.translationThresholdPassed == false{
                     
                     let touch = g.initialTouchLocation
                     
@@ -371,6 +372,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
                     }
                     
                 } else if let g = gesture as? TwoFingerGesture, g.hasScaledObject {
+                    
+                    if let cube2 = self?.virtualObject as? MeasurementCube2 {
+                        cube2.select(planeNode: cube2.selectedNode)
+                    }
+                    
                     self?._printMeasurements()
                 }
                 
@@ -386,7 +392,15 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		if virtualObject == nil {
 			return
 		}
+        
 		currentGesture = currentGesture?.updateGestureFromTouches(touches, .touchMoved)
+        
+        if let g = currentGesture as? TwoFingerGesture, g.hasScaledObject {
+            if let cube2 = virtualObject as? MeasurementCube2 {
+                cube2.select(planeNode: cube2.selectedNode)
+            }
+        }
+        
 		displayVirtualObjectTransform()
 	}
 	
