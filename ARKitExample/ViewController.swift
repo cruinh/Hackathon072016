@@ -139,12 +139,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
     
     func _printMeasurements() {
         guard let virtualObject = virtualObject as? MeasurementCube2,
-            let geometry = virtualObject.childNodes.first?.geometry else { return }
+            let topNode = virtualObject.topNode?.geometry,
+            let rightNode = virtualObject.rightNode?.geometry else { return }
         
         let inchesPerMeter : Float = 39.37
-        let width : Float = Float(geometry.boundingBox.max.x - geometry.boundingBox.min.x)
-        let height : Float = Float(geometry.boundingBox.max.y - geometry.boundingBox.min.y)
-        let length : Float = Float(geometry.boundingBox.max.z - geometry.boundingBox.min.z)
+        let width : Float = Float(topNode.boundingBox.max.x - topNode.boundingBox.min.x)
+        let height : Float = Float(rightNode.boundingBox.max.y - rightNode.boundingBox.min.y)
+        let length : Float = Float(rightNode.boundingBox.max.x - rightNode.boundingBox.min.x)
         
         let xInches = virtualObject.scale.x * width * inchesPerMeter
         let yInches = virtualObject.scale.y * height * inchesPerMeter
