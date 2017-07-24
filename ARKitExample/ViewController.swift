@@ -138,13 +138,13 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
     }
     
     func _printMeasurements() {
-        guard let virtualObject = virtualObject as? MeasurementCube,
-            let box = virtualObject.childNodes.first?.geometry as? SCNBox else { return }
+        guard let virtualObject = virtualObject as? MeasurementCube2,
+            let geometry = virtualObject.childNodes.first?.geometry else { return }
         
         let inchesPerMeter : Float = 39.37
-        let width : Float = Float(box.width)
-        let height : Float = Float(box.height)
-        let length : Float = Float(box.length)
+        let width : Float = Float(geometry.boundingBox.max.x - geometry.boundingBox.min.x)
+        let height : Float = Float(geometry.boundingBox.max.y - geometry.boundingBox.min.y)
+        let length : Float = Float(geometry.boundingBox.max.z - geometry.boundingBox.min.z)
         
         let xInches = virtualObject.scale.x * width * inchesPerMeter
         let yInches = virtualObject.scale.y * height * inchesPerMeter
@@ -356,12 +356,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		
 		if currentGesture == nil {
             currentGesture = Gesture.startGestureFromTouches(touches, self.sceneView, object) { [weak self] gesture -> Void in
-                
                 if let g = gesture as? TwoFingerGesture, g.hasScaledObject {
-                    
                     self?._printMeasurements()
                 }
-                
             }
 		} else {
 			currentGesture = currentGesture!.updateGestureFromTouches(touches, .touchBegan)
@@ -374,6 +371,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		if virtualObject == nil {
 			return
 		}
+        
+        if currentGesture is TwoFingerGesture {
+            _printMeasurements()
+        }
         
 		currentGesture = currentGesture?.updateGestureFromTouches(touches, .touchMoved)
 		displayVirtualObjectTransform()

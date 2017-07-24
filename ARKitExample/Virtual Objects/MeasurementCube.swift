@@ -121,21 +121,19 @@ class MeasurementCube2: VirtualObject {
         return nil
     }
     
-    override func scale2(_ amount: CGFloat) {
+    override func scale2(_ amount: SCNVector3, basePosition: SCNVector3) {
         guard let selectedNode = selectedNode else {
-            super.scale2(amount)
+            super.scale2(amount, basePosition:basePosition)
             return
-            
         }
         
         if selectedNode == topNode {
-            self.scale = SCNVector3Make(0, Float(amount), 0)
+            scale = SCNVector3Make(scale.x, Float(amount.y), scale.z)
         } else if selectedNode == frontNode || selectedNode == backNode {
-            self.scale = SCNVector3Make(0, 0, Float(amount))
+            scale = SCNVector3Make(scale.x, scale.y, amount.z)
         } else if selectedNode == rightNode || selectedNode == leftNode {
-            self.scale = SCNVector3Make(Float(amount), 0, 0)
+            scale = SCNVector3Make(amount.x, scale.y, scale.z)
         }
-        
     }
     
     override func loadModel() {
@@ -170,7 +168,7 @@ class MeasurementCube2: VirtualObject {
                 frontNode = SCNNode(geometry: frontGeometry)
                 frontNode!.name = "frontNode"
                 frontNode!.position = SCNVector3(0.0, 0.5, 0.5)
-                wrapperNode.addChildNode(frontNode!)
+                self.addChildNode(frontNode!)
                 
                 let backGeometry = SCNPlane(width: CGFloat(initialSize.x), height: CGFloat(initialSize.y))
                 let backMaterial = sceneFileMaterial.copy() as! SCNMaterial
@@ -180,7 +178,7 @@ class MeasurementCube2: VirtualObject {
                 backNode!.name = "backNode"
                 backNode!.rotation = SCNVector4(0, 1, 0, -Float.pi)
                 backNode!.position = SCNVector3(0.0, 0.5, -0.5)
-                wrapperNode.addChildNode(backNode!)
+                self.addChildNode(backNode!)
                 
                 let rightGeometry = SCNPlane(width: CGFloat(initialSize.z), height: CGFloat(initialSize.y))
                 let rightMaterial = sceneFileMaterial.copy() as! SCNMaterial
@@ -190,7 +188,7 @@ class MeasurementCube2: VirtualObject {
                 rightNode!.name = "rightNode"
                 rightNode!.rotation = SCNVector4(0, 1, 0, Float.pi/2)
                 rightNode!.position = SCNVector3(0.5, 0.5, 0.0)
-                wrapperNode.addChildNode(rightNode!)
+                self.addChildNode(rightNode!)
                 
                 let leftGeometry = SCNPlane(width: CGFloat(initialSize.z), height: CGFloat(initialSize.y))
                 let leftMaterial = sceneFileMaterial.copy() as! SCNMaterial
@@ -200,7 +198,7 @@ class MeasurementCube2: VirtualObject {
                 leftNode!.name = "leftNode"
                 leftNode!.rotation = SCNVector4(0, 1, 0, -Float.pi/2)
                 leftNode!.position = SCNVector3(-0.5, 0.5, 0.0)
-                wrapperNode.addChildNode(leftNode!)
+                self.addChildNode(leftNode!)
                 
                 let topGeometry = SCNPlane(width: CGFloat(initialSize.x), height: CGFloat(initialSize.z))
                 let topMaterial = sceneFileMaterial.copy() as! SCNMaterial
@@ -210,10 +208,10 @@ class MeasurementCube2: VirtualObject {
                 topNode!.name = "topNode"
                 topNode!.rotation = SCNVector4(1, 0, 0, -Float.pi/2)
                 topNode!.position = SCNVector3(0, 1.0, 0.0)
-                wrapperNode.addChildNode(topNode!)
+                self.addChildNode(topNode!)
             }
         }
-        
+        wrapperNode.removeFromParentNode()
     }
     
     func highlightSelectedNode() {
