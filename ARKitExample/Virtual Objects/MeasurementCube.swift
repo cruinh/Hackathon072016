@@ -75,7 +75,7 @@ class MeasurementCube2: VirtualObject {
     var rightPlane : SCNPlane? { return rightNode?.geometry as? SCNPlane }
     var leftPlane : SCNPlane? { return leftNode?.geometry as? SCNPlane }
     
-    let unselectedColor = UIColor(displayP3Red: 7/255, green: 137/255, blue: 243/255, alpha: 0.5)
+    let unselectedColor = UIColor(displayP3Red: 2/255, green: 170/255, blue: 243/255, alpha: 0.2)
     let selectedColor = UIColor.yellow
     
     var selectedNode : SCNNode?
