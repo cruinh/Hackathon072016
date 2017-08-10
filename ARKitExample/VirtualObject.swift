@@ -109,7 +109,6 @@ extension VirtualObject {
 		Vase(),
 		Lamp(),
 		Chair(),
-        MeasurementCube(),
         MeasurementCube2()
 	]
 }

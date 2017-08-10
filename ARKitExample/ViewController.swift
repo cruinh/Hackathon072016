@@ -13,11 +13,6 @@ import Photos
 import ReplayKit
 
 class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentationControllerDelegate, VirtualObjectSelectionViewControllerDelegate {
-    
-    @IBOutlet weak var heightControl: UISegmentedControl!
-    @IBOutlet weak var widthControl: UISegmentedControl!
-    @IBOutlet weak var depthControl: UISegmentedControl!
-    @IBOutlet var scaleControlPanel : UIView!
 	
     // MARK: - Main Setup & View Controller methods
     override func viewDidLoad() {
@@ -30,87 +25,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 		setupFocusSquare()
 		updateSettings()
 		resetVirtualObject()
-    }
-    
-    let changeIncrement : Float = 0.0254
-    private func value(fromSegmentedControl segmentedControl : UISegmentedControl) -> Float {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0:
-            return 0 - changeIncrement * 10
-        case 1:
-            return 0 - changeIncrement
-        case 2:
-            return changeIncrement
-        case 3:
-            return changeIncrement * 10
-        default:
-            return 0
-        }
-    }
-    
-    @IBAction func heightControlChanged(_ sender: UISegmentedControl) {
-        guard let virtualObject = virtualObject else { return }
-        
-        if let boxNode = virtualObject.childNodes.first, let box = boxNode.geometry as? SCNBox {
-            
-            let controlValue = value(fromSegmentedControl:sender)
-            
-            box.height = box.height + CGFloat(controlValue)
-            
-            
-            
-            let x = boxNode.position.x
-            let y = Float(box.height / 2)
-            let z = boxNode.position.z
-            boxNode.position = SCNVector3(x,y,z)
-            
-            _printMeasurements()
-            
-        } else {
-            let x = virtualObject.scale.x
-            let y = virtualObject.scale.y + value(fromSegmentedControl:sender)
-            let z = virtualObject.scale.z
-            _setObjectScale(x,y,z)
-        }
-        
-    }
-    
-    @IBAction func widthControlChanged(_ sender: UISegmentedControl) {
-        guard let virtualObject = virtualObject else { return }
-        
-        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
-            
-            let controlValue = value(fromSegmentedControl:sender)
-            
-            box.width = box.width + CGFloat(controlValue)
-            
-            _printMeasurements()
-            
-        } else {
-            let x = virtualObject.scale.x + value(fromSegmentedControl:sender)
-            let y = virtualObject.scale.y
-            let z = virtualObject.scale.z
-            _setObjectScale(x,y,z)
-        }
-    }
-    
-    @IBAction func depthControlChanged(_ sender: UISegmentedControl) {
-        guard let virtualObject = virtualObject else { return }
-        
-        if let box = virtualObject.childNodes.first?.geometry as? SCNBox {
-            
-            let controlValue = value(fromSegmentedControl:sender)
-            
-            box.length = box.length + CGFloat(controlValue)
-            
-            _printMeasurements()
-            
-        } else {
-            let x = virtualObject.scale.x
-            let y = virtualObject.scale.y
-            let z = virtualObject.scale.z + value(fromSegmentedControl:sender)
-            _setObjectScale(x,y,z)
-        }
     }
     
     @objc func startRecording() {
@@ -172,11 +86,11 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 	
     // MARK: - ARKit / ARSCNView
     let session = ARSession()
-	var sessionConfig: ARSessionConfiguration = ARWorldTrackingSessionConfiguration()
+	var sessionConfig: ARConfiguration = ARWorldTrackingConfiguration()
 	var use3DOFTracking = false {
 		didSet {
 			if use3DOFTracking {
-				sessionConfig = ARSessionConfiguration()
+				sessionConfig = ARConfiguration()
 			}
 			sessionConfig.isLightEstimationEnabled = UserDefaults.standard.bool(for: .ambientLightEstimation)
 			session.run(sessionConfig)
@@ -678,11 +592,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, UIPopoverPresentation
 			
 			DispatchQueue.main.async {
                 
-                if object is MeasurementCube {
-                    self.scaleControlPanel.isHidden = false
-                } else {
-                    self.scaleControlPanel.isHidden = true
-                }
                 object.scale = SCNVector3(1,1,1)
                 
 				// Immediately place the object in 3D space.
