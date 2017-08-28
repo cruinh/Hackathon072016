@@ -84,8 +84,8 @@ class VirtualObject: SCNNode {
 		controller.moveVirtualObjectToPosition(result.position, instantly, !result.hitAPlane)
 	}
     
-    func scale2(_ amount: CGFloat) {
-        scale = SCNVector3Uniform(amount)
+    func scale2(_ amount: SCNVector3, basePosition: SCNVector3) {
+        scale = amount
     }
 }
 
@@ -109,7 +109,6 @@ extension VirtualObject {
 		Vase(),
 		Lamp(),
 		Chair(),
-        MeasurementCube(),
         MeasurementCube2()
 	]
 }

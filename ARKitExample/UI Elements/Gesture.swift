@@ -187,29 +187,30 @@ class SingleFingerGesture: Gesture {
 		
 		// If this gesture hasn't moved the object then perform a hit test against
 		// the geometry to check if the user has tapped the object itself.
-		var objectHit = false
-		var hitTestOptions = [SCNHitTestOption: Any]()
-		hitTestOptions[SCNHitTestOption.boundingBoxOnly] = true
-		let results: [SCNHitTestResult] = sceneView.hitTest(latestTouchLocation, options: hitTestOptions)
-		
+
+//        var hitTestOptions = [SCNHitTestOption: Any]()
+//        hitTestOptions[SCNHitTestOption.boundingBoxOnly] = true
+//        let results: [SCNHitTestResult] = sceneView.hitTest(latestTouchLocation, options: hitTestOptions)
+//
 		// The user has touched the virtual object.
-		for result in results {
-			if VirtualObject.isNodePartOfVirtualObject(result.node) {
-				objectHit = true
-			}
-		}
-		
-		// In general, if this tap has hit the object itself then the object should
-		// not be repositioned. However, if the object covers a significant
-		// percentage of the screen then we should interpret the tap as repositioning
-		// the object.
-		if !objectHit || approxScreenSpaceCoveredByTheObject() > 0.5 {
-			// Teleport the object to whereever the user touched the screen - as long as the
-			// drag threshold has not been reached.
-			if !translationThresholdPassed {
-				virtualObject.translateBasedOnScreenPos(latestTouchLocation, instantly:true, infinitePlane:false)
-			}
-		}
+//        var objectHit = false
+//        for result in results {
+//            if VirtualObject.isNodePartOfVirtualObject(result.node) {
+//                objectHit = true
+//            }
+//        }
+//
+//        // In general, if this tap has hit the object itself then the object should
+//        // not be repositioned. However, if the object covers a significant
+//        // percentage of the screen then we should interpret the tap as repositioning
+//        // the object.
+//        if !objectHit || approxScreenSpaceCoveredByTheObject() > 0.5 {
+//            // Teleport the object to whereever the user touched the screen - as long as the
+//            // drag threshold has not been reached.
+//            if !translationThresholdPassed {
+//                virtualObject.translateBasedOnScreenPos(latestTouchLocation, instantly:true, infinitePlane:false)
+//            }
+//        }
 	}
 	
 	func approxScreenSpaceCoveredByTheObject() -> Float {
@@ -283,7 +284,8 @@ class TwoFingerGesture: Gesture {
 	var allowScaling = true
 	var initialDistanceBetweenFingers: CGFloat = 0
 	var baseDistanceBetweenFingers: CGFloat = 0
-	var objectBaseScale: CGFloat = 1.0
+	var objectBaseScale: SCNVector3!
+    var objectBasePosition: SCNVector3!
     var hasScaledObject = false
 
 	override init(_ touches: Set<UITouch>,
@@ -301,7 +303,11 @@ class TwoFingerGesture: Gesture {
 		let mp = (loc1 + loc2) / 2
 		initialMidPoint = mp
 		
-		objectBaseScale = CGFloat(virtualObject.scale.x)
+        print("RESET!" +
+            String(format:" position : %.2f, %.2f, %.2f", virtualObject.position.x, virtualObject.position.y, virtualObject.position.z) +
+            String(format:" scale : %.2f, %.2f, %.2f", virtualObject.scale.x, virtualObject.scale.y, virtualObject.scale.z))
+        objectBasePosition = virtualObject.position
+		objectBaseScale = virtualObject.scale
 		
 		// Check if any of the two fingers or their midpoint is touching the object.
 		// Based on that, translation, rotation and scale will be enabled or disabled.
@@ -349,7 +355,7 @@ class TwoFingerGesture: Gesture {
 		allowRotation = firstTouchWasOnObject
 		// Allow scale if the fingers are on the object or if the object is scaled very small, and if the scale gesture has been enabled in Settings.
 		let scaleGestureEnabled = UserDefaults.standard.bool(for: .scaleWithPinchGesture)
-		allowScaling = scaleGestureEnabled && (firstTouchWasOnObject || objectBaseScale < 0.1)
+		allowScaling = scaleGestureEnabled && (firstTouchWasOnObject || objectBaseScale.x < 0.1 || objectBaseScale.y < 0.1 || objectBaseScale.z < 0.1)
 		
 		let loc2ToLoc1 = loc1 - loc2
 		initialDistanceBetweenFingers = loc2ToLoc1.length()
@@ -478,8 +484,10 @@ class TwoFingerGesture: Gesture {
 
         if scaleThresholdPassed {
             if baseDistanceBetweenFingers != 0 {
-                let relativeScale = distanceBetweenFingers / baseDistanceBetweenFingers
-                let newScale = objectBaseScale * relativeScale
+                let relativeScale = Float(distanceBetweenFingers / baseDistanceBetweenFingers)
+                let newScale = SCNVector3(objectBaseScale.x * relativeScale,
+                                          objectBaseScale.y * relativeScale,
+                                          objectBaseScale.z * relativeScale)
 
                 // Uncomment the block below to "snap" the 3D model to 100%.
                 /*
@@ -487,7 +495,7 @@ class TwoFingerGesture: Gesture {
                  newScale = 1.0 // Snap scale to 100% when getting close.
                  }*/
 
-                virtualObject.scale2(newScale)
+                virtualObject.scale2(newScale, basePosition:objectBasePosition)
                 
                 hasScaledObject = true
                 if let nodeWhichReactsToScale = virtualObject.reactsToScale() {
